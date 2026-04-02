@@ -58,46 +58,64 @@ type LoginPageData struct {
 }
 
 func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	// fix 1: only allow POST method
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var req SignUpRequest // fix 2: use SignUpRequest not LoginRequest — wrong struct
-	defer r.Body.Close()  // fix 3: always close body
+	defer r.Body.Close()
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.log.Error("invalid request:", err)
-		http.Error(w, "invalid request", http.StatusBadRequest)
-		return
+	// DEBUG: log content type so we know how data arrived
+	h.log.Debugf("[SignUp] Content-Type: %s", r.Header.Get("Content-Type"))
+
+	var req SignUpRequest
+
+	contentType := r.Header.Get("Content-Type")
+	if strings.Contains(contentType, "application/json") {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			h.log.Errorf("[SignUp] JSON decode error: %v", err)
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+	} else {
+		// HTML form submission (application/x-www-form-urlencoded)
+		if err := r.ParseForm(); err != nil {
+			h.log.Errorf("[SignUp] ParseForm error: %v", err)
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+		req.Email = r.FormValue("email")
+		req.Password = r.FormValue("password")
+		req.Name = r.FormValue("name")
 	}
 
-	// fix 4: log says "Login attempt" but this is SignUp
-	h.log.Info("SignUp attempt:", req.Email)
+	// DEBUG: log parsed values (mask password in real apps)
+	h.log.Debugf("[SignUp] parsed — email=%q name=%q password_len=%d", req.Email, req.Name, len(req.Password))
 
-	// fix 5: basic validation before hitting the service
 	if req.Email == "" || req.Password == "" {
+		h.log.Warn("[SignUp] missing email or password")
 		http.Error(w, "email and password are required", http.StatusBadRequest)
 		return
 	}
 
+	h.log.Infof("[SignUp] attempting to create user: %s", req.Email)
+
 	user, err := h.service.SignUp(req.Email, req.Password, req.Name)
 	if err != nil {
-		h.log.Warn("Create user failed:", err)
+		h.log.Warnf("[SignUp] service error: %v", err)
 
-		// fix 6: handle specific errors with proper status codes
-		// instead of blindly returning err.Error() to the client
 		if strings.Contains(err.Error(), "duplicate key") {
-			http.Error(w, "email already exists", http.StatusConflict) // 409
+			http.Error(w, "email already exists", http.StatusConflict)
 			return
 		}
-		http.Error(w, "internal server error", http.StatusInternalServerError) // 500
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	h.log.Debugf("[SignUp] user created — id=%d email=%s", user.ID, user.Email)
+
 	resp := SignUpResponse{
-		ID:    user.ID, // fix 7: user.id → user.ID (must be exported field)
+		ID:    user.ID,
 		Email: user.Email,
 	}
 
