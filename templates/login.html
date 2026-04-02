@@ -1,0 +1,21 @@
+{{template "base" .}}
+
+{{define "title"}}Login{{end}}
+
+{{define "content"}}
+    <h1>Login</h1>
+
+    {{if .Error}}
+        <p style="color:red;">{{.Error}}</p>
+    {{end}}
+
+    <form method="POST" action="/login">
+        <label>Email</label>
+        <input type="email" name="email" value="{{.Email}}">
+
+        <label>Password</label>
+        <input type="password" name="password">
+
+        <button type="submit">Login</button>
+    </form>
+{{end}}

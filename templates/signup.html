@@ -1,0 +1,23 @@
+{{template "base" .}}
+
+{{define "title"}}Register{{end}}
+
+{{define "content"}}
+    <h1>Create Account</h1>
+
+    {{if .Error}}
+        <p style="color:red;">{{.Error}}</p>
+    {{end}}
+
+    <form method="POST" action="/signup">
+        <label>Name</label>
+        <input type="text" name="name" value="{{.Name}}">
+        <label>Email</label>
+        <input type="email" name="email" value="{{.Email}}">
+
+        <label>Password</label>
+        <input type="password" name="password">
+
+        <button type="submit">Register</button>
+    </form>
+{{end}}
