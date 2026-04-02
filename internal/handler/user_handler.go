@@ -13,18 +13,22 @@ import (
 )
 
 type AuthHandler struct {
-	service *service.AuthService
-	log     *logrus.Logger
-	tmpl    *template.Template
+	service      *service.AuthService
+	log          *logrus.Logger
+	loginTmpl    *template.Template
+	registerTmpl *template.Template
 }
 
 func NewAuthHandler(s *service.AuthService, log *logrus.Logger) *AuthHandler {
-	tmpl := template.Must(template.ParseGlob(filepath.Join("templates", "*.html")))
+	base := filepath.Join("templates", "base.html")
+	loginTmpl := template.Must(template.ParseFiles(base, filepath.Join("templates", "login.html")))
+	registerTmpl := template.Must(template.ParseFiles(base, filepath.Join("templates", "signup.html")))
 
 	return &AuthHandler{
-		service: s,
-		log:     log,
-		tmpl:    tmpl,
+		service:      s,
+		log:          log,
+		loginTmpl:    loginTmpl,
+		registerTmpl: registerTmpl,
 	}
 }
 
@@ -53,8 +57,9 @@ type RegisterPageData struct {
 	Name     string
 }
 type LoginPageData struct {
-	Error string
-	Email string
+	Error    string
+	Email    string
+	Password string
 }
 
 func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -125,28 +130,57 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 func (h *AuthHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
-	h.tmpl.ExecuteTemplate(w, "base", RegisterPageData{})
+	h.registerTmpl.ExecuteTemplate(w, "base", RegisterPageData{})
 }
 func (h *AuthHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	h.tmpl.ExecuteTemplate(w, "base", LoginPageData{})
+	h.loginTmpl.ExecuteTemplate(w, "base", LoginPageData{})
 }
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	defer r.Body.Close()
+
+	h.log.Debugf("[Login] Content-Type: %s", r.Header.Get("Content-Type"))
+
 	var req LoginRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.log.Error("invalid request:", err)
-		http.Error(w, "invalid request", http.StatusBadRequest)
+	contentType := r.Header.Get("Content-Type")
+	if strings.Contains(contentType, "application/json") {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			h.log.Errorf("[Login] JSON decode error: %v", err)
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			h.log.Errorf("[Login] ParseForm error: %v", err)
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+		req.Email = r.FormValue("email")
+		req.Password = r.FormValue("password")
+	}
+
+	h.log.Debugf("[Login] parsed — email=%q", req.Email)
+
+	if req.Email == "" || req.Password == "" {
+		h.log.Warn("[Login] missing email or password")
+		http.Error(w, "email and password are required", http.StatusBadRequest)
 		return
 	}
 
-	h.log.Info("Login attempt:", req.Email)
+	h.log.Infof("[Login] attempting login for: %s", req.Email)
 
 	user, token, err := h.service.Login(req.Email, req.Password)
 	if err != nil {
-		h.log.Warn("login failed:", err)
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		h.log.Warnf("[Login] failed: %v", err)
+		http.Error(w, "invalid email or password", http.StatusUnauthorized)
 		return
 	}
+
+	h.log.Debugf("[Login] success for: %s", user.Email)
 
 	resp := LoginResponse{
 		Token: token,

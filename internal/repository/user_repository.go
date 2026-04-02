@@ -17,9 +17,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
-	fmt.Println("🔥 Querying DB for:", email)
-
-	query := `SELECT id, email, password FROM users WHERE email=$1`
+	query := `SELECT id, email, password_digest FROM users WHERE email=$1`
 
 	row := r.db.QueryRow(query, email)
 

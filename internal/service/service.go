@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"restapi/internal/model"
 	"restapi/internal/repository"
@@ -33,8 +32,6 @@ func (s *AuthService) Login(email, password string) (*model.User, string, error)
 		}
 		return nil, "", err
 	}
-
-	fmt.Println("👉 Got user from DB:", user.Email)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordDigest), []byte(password)); err != nil {
 		return nil, "", errors.New("invalid password")

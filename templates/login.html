@@ -3,13 +3,14 @@
 {{define "title"}}Login{{end}}
 
 {{define "content"}}
-    <h1>Login</h1>
+    <h1>Login Account</h1>
 
     {{if .Error}}
         <p style="color:red;">{{.Error}}</p>
     {{end}}
 
     <form method="POST" action="/login">
+
         <label>Email</label>
         <input type="email" name="email" value="{{.Email}}">
 
