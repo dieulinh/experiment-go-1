@@ -5,7 +5,7 @@ import (
 	"restapi/internal/handler"
 )
 
-func New(authHandler *handler.AuthHandler) http.Handler {
+func New(authHandler *handler.Handler) http.Handler {
 	mux := http.NewServeMux()
 
 	// serve static files (css, js, images)

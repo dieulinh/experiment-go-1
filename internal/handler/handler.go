@@ -2,33 +2,24 @@ package handler
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
-	"path/filepath"
-	"strings"
-
+	"restapi/internal/helper"
 	"restapi/internal/service"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
-type AuthHandler struct {
-	service      *service.AuthService
-	log          *logrus.Logger
-	loginTmpl    *template.Template
-	registerTmpl *template.Template
+type Handler struct {
+	service *service.AuthService
+	log     *logrus.Logger
 }
 
-func NewAuthHandler(s *service.AuthService, log *logrus.Logger) *AuthHandler {
-	base := filepath.Join("templates", "base.html")
-	loginTmpl := template.Must(template.ParseFiles(base, filepath.Join("templates", "login.html")))
-	registerTmpl := template.Must(template.ParseFiles(base, filepath.Join("templates", "signup.html")))
+func NewHandler(s *service.AuthService, log *logrus.Logger) *Handler {
 
-	return &AuthHandler{
-		service:      s,
-		log:          log,
-		loginTmpl:    loginTmpl,
-		registerTmpl: registerTmpl,
+	return &Handler{
+		service: s,
+		log:     log,
 	}
 }
 
@@ -62,7 +53,7 @@ type LoginPageData struct {
 	Password string
 }
 
-func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -129,13 +120,15 @@ func (h *AuthHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(resp)
 }
-func (h *AuthHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
-	h.registerTmpl.ExecuteTemplate(w, "base", RegisterPageData{})
+func (h *Handler) RegisterPage(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{}
+	helper.Render(w, data, "templates/signup.html")
 }
-func (h *AuthHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	h.loginTmpl.ExecuteTemplate(w, "base", LoginPageData{})
+func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{}
+	helper.Render(w, data, "templates/login.html")
 }
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return

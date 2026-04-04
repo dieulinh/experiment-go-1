@@ -25,10 +25,10 @@ func main() {
 	// init layers
 	userRepo := repository.NewUserRepository(db.DB)
 	authService := service.NewAuthService(userRepo)
-	authHandler := handler.NewAuthHandler(authService, logger.Log)
+	handler := handler.NewHandler(authService, logger.Log)
 
 	// routes
-	mux := router.New(authHandler)
+	mux := router.New(handler)
 	// http.HandleFunc("/login", authHandler.Login)
 	// http.HandleFunc("/signup", authHandler.SignUp)
 
@@ -36,11 +36,6 @@ func main() {
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
 	}
-	// err := http.ListenAndServe(":8080", nil)
-	// if err != nil {
-	// 	// log.Logger.Fatal("error ", err)
-	// }
-
 }
 
 func TestDB() {

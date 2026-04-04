@@ -1,4 +1,4 @@
-{{template "base" .}}
+{{template "layout" .}}
 
 {{define "title"}}Login{{end}}
 
@@ -9,14 +9,17 @@
         <p style="color:red;">{{.Error}}</p>
     {{end}}
 
-    <form method="POST" action="/login">
-
-        <label>Email</label>
-        <input type="email" name="email" value="{{.Email}}">
-
-        <label>Password</label>
-        <input type="password" name="password">
-
-        <button type="submit">Login</button>
+    <form method="POST" action="/login" class="card">
+        <div class="form-row">
+            <label>Email</label>
+            <input type="email" name="email" value="{{.Email}}" class="form-input">
+        </div>
+        <div class="form-row">
+            <label>Password</label>
+            <input type="password" name="password" class="form-input">
+        </div>
+        <div class="btn-row">
+            <button type="submit">Login</button>
+        </div>
     </form>
 {{end}}
