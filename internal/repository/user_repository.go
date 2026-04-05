@@ -3,20 +3,11 @@ package repository
 import (
 	"golang.org/x/crypto/bcrypt"
 
-	"database/sql"
 	"fmt"
 	"restapi/internal/model"
 )
 
-type UserRepository struct {
-	db *sql.DB
-}
-
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{db: db}
-}
-
-func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
+func (r *Repository) GetByEmail(email string) (*model.User, error) {
 	query := `SELECT id, email, password_digest FROM users WHERE email=$1`
 
 	row := r.db.QueryRow(query, email)
@@ -38,7 +29,7 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func (r *UserRepository) CreateUser(email, password, name string) (*model.User, error) {
+func (r *Repository) CreateUser(email, password, name string) (*model.User, error) {
 	fmt.Printf("Create user with email %v", email)
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost) // cost 10
 	if err != nil {

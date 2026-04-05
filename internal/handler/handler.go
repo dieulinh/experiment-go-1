@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"restapi/internal/helper"
 	"restapi/internal/service"
@@ -11,15 +12,17 @@ import (
 )
 
 type Handler struct {
-	service *service.AuthService
-	log     *logrus.Logger
+	service        *service.AuthService
+	productService *service.ProductService
+	log            *logrus.Logger
 }
 
-func NewHandler(s *service.AuthService, log *logrus.Logger) *Handler {
+func NewHandler(s *service.AuthService, ps *service.ProductService, log *logrus.Logger) *Handler {
 
 	return &Handler{
-		service: s,
-		log:     log,
+		service:        s,
+		productService: ps,
+		log:            log,
 	}
 }
 
@@ -128,6 +131,22 @@ func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{}
 	helper.Render(w, data, "templates/login.html")
 }
+
+func (h *Handler) ProductListPage(w http.ResponseWriter, r *http.Request) {
+	products, err := h.productService.GetAll()
+	log.Print(products)
+	if err != nil {
+		h.log.Errorf("[ProductListPage] error fetching products: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]any{
+		"products": products,
+	}
+	helper.Render(w, data, "templates/products/index.html")
+}
+
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
