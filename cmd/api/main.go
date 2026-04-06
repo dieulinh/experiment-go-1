@@ -23,9 +23,10 @@ func main() {
 	db.Init()
 
 	// init layers
-	userRepo := repository.NewUserRepository(db.DB)
+	userRepo := repository.NewRepository(db.DB)
 	authService := service.NewAuthService(userRepo)
-	handler := handler.NewHandler(authService, logger.Log)
+	productService := service.NewProductService(userRepo)
+	handler := handler.NewHandler(authService, productService, logger.Log)
 
 	// routes
 	mux := router.New(handler)

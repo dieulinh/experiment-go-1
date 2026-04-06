@@ -16,6 +16,7 @@ func New(authHandler *handler.Handler) http.Handler {
 	mux.HandleFunc("POST /signup", authHandler.SignUp)
 	mux.HandleFunc("POST /login", authHandler.Login)
 	mux.HandleFunc("GET /products", authHandler.ProductListPage)
-
+	mux.HandleFunc("GET /api/health", authHandler.APIHealth)
+	mux.HandleFunc("GET /product_list", authHandler.ProductList)
 	return mux
 }

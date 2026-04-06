@@ -5,12 +5,26 @@ import (
 	"log"
 	"net/http"
 	"restapi/internal/helper"
+	"restapi/internal/model"
 	"restapi/internal/service"
 	"strings"
+	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
+type Product struct {
+	ID          int             `json:"id"`
+	Name        string          `json:"name"`
+	Price       decimal.Decimal `json:"price"`
+	Description string          `json:"description"`
+}
+type ProductsResponse struct {
+	Status    string          `json:"status"`
+	Timestamp string          `json:"timestamp"`
+	Products  []model.Product `json:"products"`
+}
 type Handler struct {
 	service        *service.AuthService
 	productService *service.ProductService
@@ -130,6 +144,29 @@ func (h *Handler) RegisterPage(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{}
 	helper.Render(w, data, "templates/login.html")
+}
+func (h *Handler) ProductList(w http.ResponseWriter, r *http.Request) {
+	products, err := h.productService.GetAll()
+	log.Print(products)
+	if err != nil {
+		h.log.Errorf("[ProductListJson] error fetching products: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// data := map[string]any{
+	// 	"products": products,
+	// }
+	resp := ProductsResponse{
+		Status:    "ok",
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Products:  products,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+
 }
 
 func (h *Handler) ProductListPage(w http.ResponseWriter, r *http.Request) {
