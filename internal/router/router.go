@@ -18,5 +18,12 @@ func New(authHandler *handler.Handler) http.Handler {
 	mux.HandleFunc("GET /products", authHandler.ProductListPage)
 	mux.HandleFunc("GET /api/health", authHandler.APIHealth)
 	mux.HandleFunc("GET /product_list", authHandler.ProductList)
+
+	// Cart routes
+	mux.HandleFunc("POST /api/cart/items", authHandler.AddToCart)
+	mux.HandleFunc("GET /api/cart", authHandler.GetCart)
+	mux.HandleFunc("DELETE /api/cart/items", authHandler.RemoveFromCart)
+	mux.HandleFunc("POST /api/cart/clear", authHandler.ClearCart)
+
 	return mux
 }

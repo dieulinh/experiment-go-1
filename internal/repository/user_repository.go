@@ -37,7 +37,7 @@ func (r *Repository) CreateUser(email, password, name string) (*model.User, erro
 
 	}
 
-	query := "INSERT INTO users (email, password_digest,name) VALUES ($1, $2, $3) RETURNING id, email"
+	query := "INSERT INTO users (email, password_digest, name) VALUES ($1, $2, $3) RETURNING id, email"
 
 	user := &model.User{}
 	err = r.db.QueryRow(query, email, string(bytes), name).Scan(

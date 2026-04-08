@@ -26,7 +26,8 @@ func main() {
 	userRepo := repository.NewRepository(db.DB)
 	authService := service.NewAuthService(userRepo)
 	productService := service.NewProductService(userRepo)
-	handler := handler.NewHandler(authService, productService, logger.Log)
+	cartService := service.NewCartService(userRepo)
+	handler := handler.NewHandler(authService, productService, cartService, logger.Log)
 
 	// routes
 	mux := router.New(handler)

@@ -104,6 +104,7 @@
             margin-bottom: 20px;
         }
     </style>
+    <script src="/static/js/products_util.js"></script>
 
     <div class="products-container">
         <div class="products-header">
@@ -119,7 +120,7 @@
                             <div class="product-description">{{.Description}}</div>
                             <div class="product-price">${{.Price}}</div>
                             <div class="product-actions">
-                                <button class="btn btn-primary">Add to Cart</button>
+                                <button class="btn btn-primary" onclick="addToCart({{.ID}})">Add to Cart</button>
                                 <button class="btn btn-secondary">View Details</button>
                             </div>
                         </div>
