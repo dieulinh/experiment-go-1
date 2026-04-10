@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"restapi/internal/config"
 	"restapi/internal/db"
 	"restapi/internal/handler"
 	"restapi/internal/logger"
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	config.Load()
+
 	// init logger
 	var myStr = "Hello"
 	fmt.Println(len(myStr))
@@ -27,7 +30,8 @@ func main() {
 	authService := service.NewAuthService(userRepo)
 	productService := service.NewProductService(userRepo)
 	cartService := service.NewCartService(userRepo)
-	handler := handler.NewHandler(authService, productService, cartService, logger.Log)
+	contactService := service.NewContactServiceFromEnv()
+	handler := handler.NewHandler(authService, productService, cartService, contactService, logger.Log)
 
 	// routes
 	mux := router.New(handler)

@@ -29,15 +29,17 @@ type Handler struct {
 	service        *service.AuthService
 	productService *service.ProductService
 	cartService    *service.CartService
+	contactService *service.ContactService
 	log            *logrus.Logger
 }
 
-func NewHandler(s *service.AuthService, ps *service.ProductService, cs *service.CartService, log *logrus.Logger) *Handler {
+func NewHandler(s *service.AuthService, ps *service.ProductService, cs *service.CartService, contactService *service.ContactService, log *logrus.Logger) *Handler {
 
 	return &Handler{
 		service:        s,
 		productService: ps,
 		cartService:    cs,
+		contactService: contactService,
 		log:            log,
 	}
 }
